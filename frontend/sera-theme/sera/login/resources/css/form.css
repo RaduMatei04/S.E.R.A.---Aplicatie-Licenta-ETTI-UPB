@@ -1,0 +1,223 @@
+/* ============================================================
+   FORM — câmpurile de email/parolă, checkbox "ține-mă minte",
+   butonul de login și stările de focus/hover ale acestora.
+   ============================================================ */
+
+/* Spațiul de sub fiecare câmp (email, parolă etc.) */
+.form-group {
+  margin-bottom: var(--stack-gap);
+}
+
+/* Eticheta de deasupra unui câmp (ex: "EMAIL") */
+.pf-c-form__label {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+/* Aspectul de bază al unui câmp de input simplu (fără buton de
+   toggle parolă lângă el) */
+.login-pf-page :is(.pf-c-form-control, .form-control) {
+  min-height: 50px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--input-radius);
+  background: var(--input-background);
+  color: var(--foreground);
+  font: inherit;
+  box-shadow: none;
+}
+
+/* Browser autofill would otherwise repaint the field in its own blue */
+/* Când browserul completează automat un câmp (ex: Chrome), îl
+   colorează implicit albastru — regula de mai jos păstrează
+   culorile noastre în loc de cele implicite ale browserului */
+.login-pf-page :is(.pf-c-form-control, .form-control):-webkit-autofill {
+  -webkit-text-fill-color: var(--foreground);
+  -webkit-box-shadow: 0 0 0 1000px var(--input-background) inset;
+  caret-color: var(--foreground);
+}
+
+/* --- Câmpul de parolă, care are un buton "arată parola" în interior --- */
+/* The group is the visual field; the toggle button sits inside it */
+/* Aici desenăm noi chenarul/fundalul câmpului (nu pe input-ul din
+   interior), ca butonul de "ochi" să pară că stă în interiorul
+   aceluiași dreptunghi ca textul de parolă */
+.pf-c-input-group {
+  display: flex;
+  align-items: center;
+  min-height: 50px;
+  padding-inline-end: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--input-radius);
+  background: var(--input-background);
+}
+
+/* input-ul de text propriu-zis din interiorul grupului: fără
+   propriul chenar/fundal, pentru că acelea vin de la părinte */
+.login-pf-page .pf-c-input-group > :is(.pf-c-form-control, .form-control) {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 48px;
+  border: 0;
+  background: transparent;
+}
+
+/* butonul mic (iconița de ochi) care arată/ascunde parola */
+.login-pf-page .pf-c-input-group > button {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.login-pf-page .pf-c-input-group > button:hover {
+  background: rgb(32 41 35 / 6%);
+  color: var(--foreground);
+}
+
+/* --- Rândul "ține-mă minte" / "Ai uitat parola?" --- */
+.login-pf-settings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+/* Realm has neither remember-me nor password reset: drop the empty row */
+/* Unele realm-uri Keycloak nu au nici checkbox "ține-mă minte",
+   nici link de resetare parolă — atunci rândul ar rămâne gol,
+   așa că îl ascundem complet */
+.login-pf-settings:not(:has(label, a)) {
+  display: none;
+}
+
+.sera-remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.sera-remember input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--sera-brand);
+}
+
+#kc-form-buttons {
+  margin-bottom: 0;
+}
+
+/* ------------------------------------------------------------
+   FOCUS — cum arată un element când e selectat cu tastatura
+   (Tab) sau click, important pentru accesibilitate
+   ------------------------------------------------------------ */
+
+/* inel de focus generic, pentru linkuri/butoane/inputuri simple */
+.login-pf-page
+  :is(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
+/* când dai focus pe un câmp simplu (fără buton de toggle) */
+.login-pf-page
+  :is(.pf-c-form-control, .form-control):focus {
+  border-color: var(--sera-brand);
+  box-shadow: 0 0 0 1px var(--sera-brand);
+}
+
+/* când dai focus în interiorul grupului cu buton de parolă,
+   conturăm tot grupul (nu doar input-ul) */
+.login-pf-page .pf-c-input-group:focus-within {
+  border-color: var(--sera-brand);
+  box-shadow: 0 0 0 1px var(--sera-brand);
+}
+
+/* Inside a group the ring is drawn by the container, not the input */
+/* input-ul din interiorul grupului de parolă nu mai primește el
+   însuși inel de focus, ca să nu avem două contururi suprapuse
+   (unul pe input, unul pe grup) */
+.login-pf-page
+  .pf-c-input-group
+  > :is(.pf-c-form-control, .form-control):is(:focus, :focus-visible) {
+  border-color: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+.login-pf-page .pf-c-input-group > button:focus-visible {
+  outline-offset: -2px;
+}
+
+/* ------------------------------------------------------------
+   BUTOANE — inclusiv butonul principal de "Login"
+   ------------------------------------------------------------ */
+.login-pf-page .pf-c-button {
+  min-height: 48px;
+  border-radius: var(--input-radius);
+  font-family: inherit;
+}
+
+/* Keycloak/PatternFly adaugă un pseudo-element ::after cu chenar
+   propriu pe butoane; îl eliminăm ca să folosim doar stilul nostru */
+.login-pf-page .pf-c-button::after {
+  border: none;
+}
+
+/* butonul principal, verde/închis, de "Login" */
+.login-pf-page .pf-m-primary {
+  min-height: 56px;
+  border: 0;
+  border-radius: var(--input-radius);
+  background: var(--link);
+  color: var(--surface);
+  text-transform: uppercase;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  box-shadow: 0 8px 20px -4px rgb(8 116 67 / 35%);
+}
+
+.login-pf-page .pf-m-primary:hover {
+  background: var(--link-hover);
+}
+
+/* butonul de login ocupă toată lățimea formularului */
+#kc-login {
+  width: 100%;
+}
+
+.login-pf-page :is(button, input[type="submit"]) {
+  cursor: pointer;
+}
+
+/* stare dezactivată (ex: cât timp se trimite formularul) */
+.login-pf-page :is(button, input):disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+[aria-disabled="true"] {
+  opacity: 0.65;
+}

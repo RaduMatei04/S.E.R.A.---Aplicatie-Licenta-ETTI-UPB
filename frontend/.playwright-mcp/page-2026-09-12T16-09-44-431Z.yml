@@ -1,0 +1,11 @@
+- main [ref=e3]:
+  - region [ref=e4]:
+    - 'img "Sigla SERA: o frunză albă cu circuite electronice" [ref=e5]'
+    - heading "SERA" [level=1] [ref=e6]
+    - paragraph [ref=e7]: Sistem Electronic de Reglare și Automatizare
+    - paragraph [ref=e8]: Platformă pentru monitorizarea și configurarea unei sere inteligente.
+    - link "Către aplicație" [ref=e9] [cursor=pointer]:
+      - /url: /acasa
+  - generic [ref=e10]:
+    - paragraph [ref=e11]: Proiect realizat în cadrul lucrării de licență.
+    - paragraph [ref=e12]: Dezvoltat de RADU MATEI.

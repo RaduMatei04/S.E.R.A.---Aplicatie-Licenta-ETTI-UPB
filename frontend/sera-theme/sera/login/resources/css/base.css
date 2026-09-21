@@ -1,0 +1,78 @@
+/* ============================================================
+   BASE — fundația paginii: reset, tipografie și "scheletul"
+   de layout (unde stă cardul pe ecran)
+   ============================================================ */
+
+/* Reset simplu: toate elementele calculează lățimea/înălțimea
+   incluzând padding-ul și border-ul, ca să nu "sară" dimensiunile
+   când adăugăm un chenar sau spațiere. */
+* {
+  box-sizing: border-box;
+}
+
+/* Stilul de bază al întregii pagini de login: fundal, culoare de
+   text și fontul folosit peste tot (dacă un browser nu are fontul
+   de sistem, trece la următorul din listă). */
+html.login-pf,
+.login-pf body {
+  min-height: 100%;
+  background: var(--background);
+  color: var(--foreground);
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.login-pf body {
+  margin: 0;
+}
+
+/* Culoarea și stilul linkurilor (ex: "Ai uitat parola?") */
+.login-pf-page a {
+  color: var(--link);
+  text-underline-offset: 3px;
+}
+
+.login-pf-page a:hover {
+  text-decoration: underline;
+}
+
+/* --- Layout-ul paginii ---
+   Cardul de login trebuie centrat pe ecran, atât pe orizontală
+   cât și pe verticală, indiferent de mărimea ferestrei. */
+.login-pf-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* dacă textul din card e prea lung pentru ecran, "safe center"
+     împinge începutul cardului să rămână vizibil, în loc să-l taie */
+  justify-content: safe center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 64px 48px;
+}
+
+/* Keycloak adaugă implicit un antet (logo + titlu realm) deasupra
+   cardului; SERA are propriul header în interiorul cardului, deci
+   îl ascundem pe cel implicit. */
+#kc-header {
+  display: none;
+}
+
+/* Cardul alb propriu-zis: lățime maximă, colțuri rotunjite,
+   fundal alb și umbră — folosind variabilele definite în tokens.css */
+.login-pf-page .card-pf {
+  width: 100%;
+  max-width: var(--card-width);
+  margin: 0 auto;
+  padding: var(--card-padding);
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+}

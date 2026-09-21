@@ -1,0 +1,39 @@
+/* ============================================================
+   ERRORS — cum arată formularul când un câmp e greșit completat
+   sau când Keycloak afișează un mesaj de eroare/avertizare
+   ============================================================ */
+
+/* Keycloak marchează câmpurile invalide cu aria-invalid="true";
+   noi doar colorăm chenarul cu roșu când se întâmplă asta */
+.login-pf-page [aria-invalid="true"] {
+  border-color: var(--error);
+}
+
+/* la fel, dar pentru câmpul de parolă (care e într-un "grup",
+   vezi form.css) — colorăm tot grupul, nu doar input-ul din el */
+.login-pf-page .pf-c-input-group:has([aria-invalid="true"]) {
+  border-color: var(--error);
+}
+
+/* textul de eroare de sub un câmp (ex: "Email invalid") */
+.kc-feedback-text {
+  overflow-wrap: anywhere;
+}
+
+span.kc-feedback-text {
+  display: block;
+  margin-top: 8px;
+}
+
+/* culoarea roșie pentru textul de eroare și pentru asteriscul
+   care marchează un câmp obligatoriu */
+.pf-m-error,
+.required {
+  color: var(--error);
+}
+
+/* caseta de alertă generală de sus (ex: "Sesiune expirată") */
+.pf-c-alert {
+  margin-bottom: 24px;
+  border-radius: 8px;
+}

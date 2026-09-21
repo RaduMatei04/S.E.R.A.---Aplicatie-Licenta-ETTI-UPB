@@ -1,0 +1,152 @@
+/* ============================================================
+   CARD — tot ce ține de "vitrina" cardului: titlu, mesaj de
+   bun-venit, butoane de login social, dropdown de limbă etc.
+   Aici NU sunt stilizate câmpurile de formular (email/parolă) —
+   acelea sunt în form.css.
+   ============================================================ */
+
+/* --- Titlu și text de bun venit --- */
+.login-pf-header {
+  text-align: start;
+}
+
+/* Titlul implicit generat de Keycloak (folosit când nu avem
+   un titlu custom SERA) */
+#kc-page-title {
+  margin: 0 0 var(--stack-gap);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+/* Dacă în interiorul titlului există blocul nostru custom
+   (.sera-login-heading), anulăm marginea implicită ca să nu
+   avem spațiu dublu */
+#kc-page-title:has(.sera-login-heading) {
+  margin: 0;
+}
+
+/* Wrapper custom SERA care conține titlul + mesajul de bun venit */
+.sera-login-heading {
+  display: block;
+  padding-bottom: var(--stack-gap);
+}
+
+.sera-login-title {
+  display: block;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.sera-login-welcome {
+  display: block;
+  margin-top: var(--stack-gap);
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* Mesajul informativ de sub formular (ex: "Nu ai cont? Înregistrează-te") */
+#kc-info {
+  margin-top: 26px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* --- Login social (Google, Facebook etc.) --- */
+/* linia orizontală "sau continuă cu" de deasupra butoanelor sociale */
+#kc-social-providers hr {
+  margin: 28px 0 22px;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+#kc-social-providers h2 {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 400;
+  text-align: center;
+}
+
+/* lista de butoane sociale: implicit o coloană */
+#kc-social-providers ul {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* dacă avem mai mulți provideri, Keycloak adaugă clasa asta
+   ca să-i așeze pe 2 coloane în loc de una */
+#kc-social-providers .kc-social-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+#kc-social-providers a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* --- Ecrane alternative de autentificare (2FA, WebAuthn) --- */
+#kc-select-try-another-way-form {
+  margin-top: 24px;
+}
+
+#authenticateWebAuthnButton {
+  display: block;
+  margin-top: 20px;
+  text-align: center;
+}
+
+/* --- Selectorul de limbă (dropdown din colț) --- */
+#kc-locale {
+  margin-bottom: 20px;
+  text-align: end;
+}
+
+#kc-locale-dropdown {
+  position: relative;
+}
+
+/* lista de limbi e ascunsă implicit; Keycloak o afișează prin
+   JavaScript adăugând aria-expanded="true" pe butonul de deasupra */
+#kc-locale-dropdown ul {
+  display: none;
+  z-index: 10;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+#kc-locale-dropdown button[aria-expanded="true"] + ul {
+  display: block;
+}
+
+/* --- Ecranul "ești logat ca X" (username afișat, cu buton de reset) --- */
+#kc-username {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow-wrap: anywhere;
+}
+
+/* tooltip text ascuns care apare doar la hover/focus pe butonul
+   de "schimbă utilizatorul" */
+.kc-tooltip-text {
+  display: none;
+}
+
+#reset-login:is(:hover, :focus-visible) .kc-tooltip-text {
+  display: inline;
+}

@@ -1,0 +1,47 @@
+/* ============================================================
+   RESPONSIVE — ajustări pentru ecrane mai mici (telefon, ferestre
+   joase). Restul fișierelor definesc aspectul "normal"; aici doar
+   suprascriem câteva valori când ecranul nu are loc suficient.
+   ============================================================ */
+
+/* Ecran cu înălțime mică (ex: laptop cu bara de adrese vizibilă):
+   micșorăm spațiile ca formularul să încapă fără scroll */
+@media (max-height: 720px) {
+  :root {
+    --stack-gap: 20px;
+    --card-padding: 32px;
+  }
+
+  .login-pf-page {
+    padding: 32px 24px;
+  }
+}
+
+/* Ecran îngust (tabletă): mai puțin spațiu pe laterale */
+@media (max-width: 800px) {
+  .login-pf-page {
+    padding: 32px 20px;
+  }
+}
+
+/* Telefon: spații și mai mici, plus text și buton mai compacte */
+@media (max-width: 480px) {
+  :root {
+    --card-padding: 24px;
+    --stack-gap: 20px;
+  }
+
+  .login-pf-page {
+    padding: 24px 16px;
+  }
+
+  .sera-login-title,
+  #kc-page-title {
+    font-size: 26px;
+  }
+
+  .login-pf-page .pf-m-primary {
+    min-height: 50px;
+    font-size: 16px;
+  }
+}

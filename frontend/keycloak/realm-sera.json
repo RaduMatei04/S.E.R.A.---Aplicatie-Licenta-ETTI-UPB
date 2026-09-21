@@ -1,0 +1,54 @@
+{
+  "realm": "sera",
+  "displayName": "SERA",
+  "enabled": true,
+  "loginTheme": "sera",
+  "internationalizationEnabled": true,
+  "supportedLocales": ["ro", "en"],
+  "defaultLocale": "ro",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": true,
+  "rememberMe": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "clients": [
+    {
+      "clientId": "sera-frontend",
+      "name": "SERA Frontend",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "rootUrl": "http://localhost:5173",
+      "baseUrl": "/",
+      "redirectUris": ["http://localhost:5173/*"],
+      "webOrigins": ["http://localhost:5173"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:5173/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "radu",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "radu@sera.local",
+      "firstName": "Radu",
+      "lastName": "Matei",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "radu",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["default-roles-sera"]
+    }
+  ]
+}
