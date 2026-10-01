@@ -3,7 +3,6 @@ import type { LucideIcon } from 'lucide-react'
 import type { MetricCode } from '@/api/types'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingCard } from '@/components/feedback/LoadingCard'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { PageSection } from '@/components/layout/PageSection'
 import { MetricCard } from '@/components/ui/metric-card'
 import { DeviceStatusBadge } from '@/features/status/components/DeviceStatusBadge'
@@ -29,19 +28,14 @@ export function HomePage() {
   const { data, isPending, isError, error } = useCurrentTelemetry()
 
   return (
-    <div className="space-y-10">
-      <PageHeader
-        title="SERA"
-        description="Valorile curente din seră, actualizate în timp real de la stația de senzori."
-        actions={<DeviceStatusBadge />}
-      />
-
+    <div className="space-y-12">
       {isError && <ErrorState error={error} />}
 
       <PageSection
         title="Mediul serei"
         description="Măsurate de senzorii comuni: BME280 și BH1750."
         columns={4}
+        action={<DeviceStatusBadge />}
       >
         {isPending
           ? Array.from({ length: 4 }, (_, index) => <LoadingCard key={index} />)

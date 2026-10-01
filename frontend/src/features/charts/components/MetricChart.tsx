@@ -25,8 +25,9 @@ type MetricChartProps = {
 /**
  * Un grafic de evoluție.
  *
- * Culorile vin din tokenii `--chart-*` deja definiți în tema aplicației, deci graficul
- * urmează automat accentul ales și modul light/dark, fără valori hexazecimale în cod.
+ * Linia folosește `--accent-color`, culoarea aleasă de utilizator, nu `--chart-1`:
+ * acesta din urmă este un gri neutru în tema SERA, deci graficele ar fi ieșit complet
+ * decolorate. Restul cromaticii (grilă, axe, tooltip) rămâne pe tokenii neutri.
  */
 export function MetricChart({ metric, plantId = null, title, from, to, bucket }: MetricChartProps) {
   const { data, isPending, isError, error } = useTelemetrySeries({ metric, plantId, from, to, bucket })
@@ -63,8 +64,8 @@ export function MetricChart({ metric, plantId = null, title, from, to, bucket }:
             <AreaChart data={points} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
               <defs>
                 <linearGradient id={`fill-${metric}-${plantId ?? 'all'}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0.02} />
+                  <stop offset="0%" stopColor="var(--accent-color)" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="var(--accent-color)" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
 
@@ -97,7 +98,7 @@ export function MetricChart({ metric, plantId = null, title, from, to, bucket }:
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke="var(--chart-1)"
+                stroke="var(--accent-color)"
                 strokeWidth={2}
                 fill={`url(#fill-${metric}-${plantId ?? 'all'})`}
                 isAnimationActive={false}

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
  */
 export function LoadingCard({ className }: { className?: string }) {
   return (
-    <Card className={cn('min-h-36 justify-between', className)} aria-busy="true">
+    <Card className={cn('min-h-40 justify-between', className)} aria-busy="true">
       <CardHeader>
         <div className="h-4 w-28 animate-pulse rounded bg-muted" />
       </CardHeader>

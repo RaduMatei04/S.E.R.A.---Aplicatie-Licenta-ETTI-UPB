@@ -42,7 +42,7 @@ export function MetricCard({
   return (
     <Card
       className={cn(
-        'min-h-36 justify-between transition-[box-shadow,opacity] hover:ring-foreground/20',
+        'min-h-40 justify-between transition-[box-shadow,opacity] hover:ring-brand/45',
         missing && 'opacity-60',
         className,
       )}

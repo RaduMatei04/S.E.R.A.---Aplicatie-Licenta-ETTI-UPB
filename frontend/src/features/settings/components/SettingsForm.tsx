@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Check, Clock, Radio } from 'lucide-react'
 import type { Settings } from '@/api/types'
 import { ErrorState } from '@/components/feedback/ErrorState'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { PageSection } from '@/components/layout/PageSection'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -69,20 +68,19 @@ export function SettingsForm({ settings }: { settings: Settings }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-10">
-      <PageHeader
-        title="SETĂRI"
-        description="Identitatea serei și pragurile după care se generează alertele. Valorile nu se trimit către stația de senzori — aplicația doar le folosește pentru a interpreta datele primite."
-        actions={
+    <form onSubmit={handleSubmit} className="space-y-12">
+      <PageSection
+        title="Identitatea serei"
+        description="Pragurile de mai jos sunt folosite doar pentru alerte; nimic nu se trimite către stația de senzori."
+        columns={2}
+        action={
           <Button type="submit" disabled={update.isPending}>
             {update.isSuccess && !update.isPending && <Check className="size-4" aria-hidden />}
             {update.isPending ? 'Se salvează…' : 'Salvează'}
           </Button>
         }
-      />
-
-      <PageSection title="Identitatea serei" columns={2}>
-        <Card className="min-h-36">
+      >
+        <Card className="min-h-40">
           <CardHeader>
             <CardTitle className="text-sm font-medium">Nume</CardTitle>
           </CardHeader>
@@ -99,7 +97,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
           </CardContent>
         </Card>
 
-        <Card className="min-h-36">
+        <Card className="min-h-40">
           <CardHeader>
             <CardTitle className="text-sm font-medium">Descriere</CardTitle>
           </CardHeader>
@@ -140,7 +138,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
         description="Informații raportate de echipament. Nu pot fi modificate din aplicație."
         columns={2}
       >
-        <Card className="min-h-36 justify-between">
+        <Card className="min-h-40 justify-between">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm font-normal text-muted-foreground">
               <Clock className="size-4 text-brand" aria-hidden />
@@ -155,7 +153,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
           </CardContent>
         </Card>
 
-        <Card className="min-h-36 justify-between">
+        <Card className="min-h-40 justify-between">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm font-normal text-muted-foreground">
               <Radio className="size-4 text-brand" aria-hidden />

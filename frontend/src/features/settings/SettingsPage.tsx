@@ -1,6 +1,5 @@
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingCard } from '@/components/feedback/LoadingCard'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { PageSection } from '@/components/layout/PageSection'
 import { SettingsForm } from '@/features/settings/components/SettingsForm'
 import { useSettings } from '@/features/settings/hooks/useSettings'
@@ -10,8 +9,7 @@ export function SettingsPage() {
 
   if (isError) {
     return (
-      <div className="space-y-8">
-        <PageHeader title="SETĂRI" />
+      <div className="space-y-12">
         <ErrorState error={error} />
       </div>
     )
@@ -19,8 +17,7 @@ export function SettingsPage() {
 
   if (isPending) {
     return (
-      <div className="space-y-10">
-        <PageHeader title="SETĂRI" />
+      <div className="space-y-12">
         <PageSection columns={2}>
           <LoadingCard />
           <LoadingCard />

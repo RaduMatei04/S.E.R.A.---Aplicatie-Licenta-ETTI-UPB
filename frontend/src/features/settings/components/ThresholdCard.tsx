@@ -2,6 +2,7 @@ import type { Threshold } from '@/api/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 
 export type ThresholdDraft = {
   minValue: string
@@ -27,25 +28,26 @@ export function ThresholdCard({ threshold, draft, error, onChange }: ThresholdCa
   const fieldId = `threshold-${threshold.id}`
 
   return (
-    <Card className="min-h-36">
+    <Card className="min-h-40">
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-3 text-sm font-medium">
           {title}
-          <label className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
-            <input
-              type="checkbox"
-              className="size-4 accent-[var(--accent-color)]"
+          <span className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
+            <Label htmlFor={`${fieldId}-enabled`} className="cursor-pointer text-xs font-normal">
+              Activ
+            </Label>
+            <Switch
+              id={`${fieldId}-enabled`}
               checked={draft.enabled}
-              onChange={(event) => onChange({ ...draft, enabled: event.target.checked })}
+              onCheckedChange={(enabled) => onChange({ ...draft, enabled })}
             />
-            Activ
-          </label>
+          </span>
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
             <Label htmlFor={`${fieldId}-min`} className="text-xs text-muted-foreground">
               Minim ({threshold.unit})
             </Label>
@@ -58,7 +60,7 @@ export function ThresholdCard({ threshold, draft, error, onChange }: ThresholdCa
               onChange={(event) => onChange({ ...draft, minValue: event.target.value })}
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label htmlFor={`${fieldId}-max`} className="text-xs text-muted-foreground">
               Maxim ({threshold.unit})
             </Label>

@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { MetricCode, SeriesBucket } from '@/api/types'
 import { ErrorState } from '@/components/feedback/ErrorState'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { PageSection } from '@/components/layout/PageSection'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -39,12 +38,7 @@ export function ChartsPage() {
   const isPerPlant = selected?.perPlant ?? false
 
   return (
-    <div className="space-y-8">
-      <PageHeader
-        title="GRAFICE"
-        description="Evoluția în timp a valorilor măsurate în seră."
-      />
-
+    <div className="space-y-12">
       {catalog.isError && <ErrorState error={catalog.error} />}
 
       <div className="flex flex-wrap items-center justify-between gap-4">

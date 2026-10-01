@@ -20,7 +20,7 @@ export function UnavailableCard({
   reason = 'Hardware nemontat',
 }: UnavailableCardProps) {
   return (
-    <Card className="min-h-36 justify-between opacity-60">
+    <Card className="min-h-40 justify-between opacity-60">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-sm font-normal text-muted-foreground">
           {Icon && <Icon className="size-4" aria-hidden />}

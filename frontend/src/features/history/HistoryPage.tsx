@@ -4,7 +4,6 @@ import type { EventSeverity, EventType } from '@/api/types'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingCard } from '@/components/feedback/LoadingCard'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -45,12 +44,7 @@ export function HistoryPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <PageHeader
-        title="ISTORIC"
-        description="Evenimente deduse de aplicație din telemetrie: depășiri de praguri, deconectări și citiri invalide."
-      />
-
+    <div className="space-y-12">
       <Tabs value={filter} onValueChange={changeFilter}>
         <TabsList>
           {FILTERS.map((entry) => (
@@ -61,7 +55,7 @@ export function HistoryPage() {
         </TabsList>
       </Tabs>
 
-      <div className="mx-auto grid w-full max-w-5xl gap-4">
+      <div className="mx-auto grid w-full max-w-5xl gap-6">
         {isError && <ErrorState error={error} />}
         {isPending && Array.from({ length: 4 }, (_, index) => <LoadingCard key={index} />)}
         {data?.items.length === 0 && (
@@ -88,7 +82,7 @@ export function HistoryPage() {
       </div>
 
       {data && data.totalPages > 1 && (
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4">
           <Button
             variant="outline"
             size="sm"

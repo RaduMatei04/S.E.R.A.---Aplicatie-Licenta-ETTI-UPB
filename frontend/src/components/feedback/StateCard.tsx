@@ -19,7 +19,7 @@ type StateCardProps = {
  */
 export function StateCard({ icon: Icon, title, description, fullWidth, className }: StateCardProps) {
   return (
-    <Card className={cn('min-h-36 justify-center', fullWidth && 'col-span-full', className)}>
+    <Card className={cn('min-h-40 justify-center', fullWidth && 'col-span-full', className)}>
       <CardContent className="flex flex-col items-center gap-2 py-6 text-center">
         {Icon && <Icon className="size-5 text-muted-foreground" aria-hidden />}
         <p className="text-sm font-medium">{title}</p>

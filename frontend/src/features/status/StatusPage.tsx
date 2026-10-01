@@ -3,7 +3,6 @@ import type { LucideIcon } from 'lucide-react'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingCard } from '@/components/feedback/LoadingCard'
 import { UnavailableCard } from '@/components/feedback/UnavailableCard'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { PageSection } from '@/components/layout/PageSection'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeviceStatusBadge } from '@/features/status/components/DeviceStatusBadge'
@@ -31,16 +30,14 @@ export function StatusPage() {
     : 0
 
   return (
-    <div className="space-y-10">
-      <PageHeader
-        title="STATUS"
-        description="Starea stației de senzori și a echipamentelor din seră."
-        actions={<DeviceStatusBadge />}
-      />
-
+    <div className="space-y-12">
       {device.isError && <ErrorState error={device.error} />}
 
-      <PageSection title="Stația de senzori" columns={3}>
+      <PageSection
+        title="Stația de senzori"
+        columns={3}
+        action={<DeviceStatusBadge />}
+      >
         {device.isPending ? (
           Array.from({ length: 3 }, (_, index) => <LoadingCard key={index} />)
         ) : (
@@ -98,7 +95,7 @@ type InfoCardProps = {
 
 function InfoCard({ icon: Icon, title, value, caption }: InfoCardProps) {
   return (
-    <Card className="min-h-36 justify-between">
+    <Card className="min-h-40 justify-between">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-sm font-normal text-muted-foreground">
           <Icon className="size-4 text-brand" aria-hidden />
