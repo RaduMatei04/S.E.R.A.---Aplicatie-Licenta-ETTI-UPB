@@ -14,6 +14,7 @@ frontend/dist-ssr
 
 # Secrets
 frontend/.env
+.env
 
 # Editor directories and files
 .vscode/*
@@ -28,3 +29,6 @@ frontend/.env
 
 # Obsidian vault local workspace state (notes in docs/ stay versioned)
 frontend/docs/.obsidian/
+
+# Build output backend
+backend/target

@@ -1,3 +1,40 @@
+import { ErrorState } from '@/components/feedback/ErrorState'
+import { LoadingCard } from '@/components/feedback/LoadingCard'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { PageSection } from '@/components/layout/PageSection'
+import { SettingsForm } from '@/features/settings/components/SettingsForm'
+import { useSettings } from '@/features/settings/hooks/useSettings'
+
 export function SettingsPage() {
-  return <h1>SET&#258;RI</h1>
+  const { data, isPending, isError, error } = useSettings()
+
+  if (isError) {
+    return (
+      <div className="space-y-8">
+        <PageHeader title="SETĂRI" />
+        <ErrorState error={error} />
+      </div>
+    )
+  }
+
+  if (isPending) {
+    return (
+      <div className="space-y-10">
+        <PageHeader title="SETĂRI" />
+        <PageSection columns={2}>
+          <LoadingCard />
+          <LoadingCard />
+        </PageSection>
+        <PageSection columns={3}>
+          {Array.from({ length: 6 }, (_, index) => (
+            <LoadingCard key={index} />
+          ))}
+        </PageSection>
+      </div>
+    )
+  }
+
+  // `key` leagă starea formularului de versiunea datelor: după o salvare reușită,
+  // formularul se remontează cu valorile confirmate de server.
+  return <SettingsForm key={data.updatedAt} settings={data} />
 }

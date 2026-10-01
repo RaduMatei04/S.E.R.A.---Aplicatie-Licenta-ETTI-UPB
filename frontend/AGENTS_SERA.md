@@ -54,6 +54,15 @@ In particular:
 
 Use native `fetch` behind a dedicated API layer when HTTP communication is introduced.
 
+### Approved exceptions
+
+Two libraries were added with explicit user approval, for capabilities the fixed stack does not cover:
+
+- **`@stomp/stompjs`** — STOMP client for the backend's WebSocket push. All contact with it is confined to `src/hooks/useSeraSocket.ts`, so it can be replaced without touching any page.
+- **`recharts`** — charting library behind `src/features/charts/components/MetricChart.tsx`. Colors come from the existing `--chart-*` design tokens, never hardcoded.
+
+No further libraries may be added without asking.
+
 ---
 
 # 3. Mandatory Frontend Root Structure

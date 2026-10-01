@@ -4,7 +4,10 @@
   "enabled": true,
   "loginTheme": "sera",
   "internationalizationEnabled": true,
-  "supportedLocales": ["ro", "en"],
+  "supportedLocales": [
+    "ro",
+    "en"
+  ],
   "defaultLocale": "ro",
   "sslRequired": "none",
   "registrationAllowed": false,
@@ -25,12 +28,30 @@
       "serviceAccountsEnabled": false,
       "rootUrl": "http://localhost:5173",
       "baseUrl": "/",
-      "redirectUris": ["http://localhost:5173/*"],
-      "webOrigins": ["http://localhost:5173"],
+      "redirectUris": [
+        "http://localhost:5173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173"
+      ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "http://localhost:5173/*"
-      }
+      },
+      "protocolMappers": [
+        {
+          "name": "sera-backend-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "sera-backend",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
     }
   ],
   "users": [
@@ -48,7 +69,9 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["default-roles-sera"]
+      "realmRoles": [
+        "default-roles-sera"
+      ]
     }
   ]
 }

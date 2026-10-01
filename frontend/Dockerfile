@@ -5,6 +5,11 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+
+# Vite inlocuieste variabilele VITE_* la build, nu la runtime: adresa API-ului
+# trebuie cunoscuta aici, nu in containerul de Nginx.
+ARG VITE_API_URL=http://localhost:8081
+ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
 FROM nginx:1.27-alpine AS runtime

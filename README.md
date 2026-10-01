@@ -1,32 +1,47 @@
 # S.E.R.A. — Sistem Electronic de Reglare și Automatizare
 
-Aplicație de licență (ETTI, UPB) pentru monitorizarea și configurarea unei sere inteligente. Proiectul acoperă interfața web (frontend) și infrastructura de autentificare (Keycloak) rulate împreună printr-un singur `docker-compose.yml`.
+Aplicație de licență (ETTI, UPB) pentru monitorizarea și configurarea unei sere inteligente. Proiectul acoperă interfața web (frontend), backend-ul de telemetrie și infrastructura de autentificare (Keycloak), rulate împreună printr-un singur `docker-compose.yml`.
 
-> Faza curentă este **UI-first**: dispozitivul ESP32, integrarea cu backend-ul și telemetria reală nu există încă. Interfața este construită astfel încât aceste integrări să poată fi adăugate ulterior fără a restructura frontend-ul.
+> Telemetria reală este integrată: un ESP32 publică pe MQTT, backend-ul o persistă în Postgres și o servește interfeței prin REST și WebSocket. Actuatoarele (pompă, ventilator) **nu sunt montate** și apar explicit ca indisponibile — nu există date simulate în aplicație.
 
 ---
 
 ## 1. Arhitectura de ansamblu
 
 ```text
-┌─────────────────────────────────────────────────────────┐
-│                        Docker host                       │
-│                                                           │
-│   ┌────────────────────┐        ┌────────────────────┐   │
-│   │   keycloak-sera     │        │   frontend-sera     │   │
-│   │  (Keycloak 26.7.0)  │◄──────►│ (React + Nginx)     │   │
-│   │  port 8080          │  OIDC  │  port 5173 → 80      │   │
-│   └─────────┬───────────┘        └────────────────────┘   │
-│             │                                             │
-│      volum  │ keycloak-data (persistență realm/useri)     │
-│             │ import realm-sera.json la pornire            │
-│             │ temă custom "sera" (login theme)             │
-└─────────────┴─────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│  Proiectul `infra`  (sera-code/infra/docker-compose.yml)              │
+│                                                                      │
+│   ESP32 ──MQTT──►  sera-mosquitto  ──►  sera-telegraf  ──►  influxdb  │
+│                     (1883)    │                                      │
+└───────────────────────────────┼──────────────────────────────────────┘
+                                │  rețeaua `infra_default`
+┌───────────────────────────────┼──────────────────────────────────────┐
+│  Proiectul `sera`  (acest repo)│                                      │
+│                                ▼                                     │
+│   ┌──────────────┐      ┌──────────────┐      ┌──────────────┐       │
+│   │ keycloak-sera│◄────►│ backend-sera │◄────►│ postgres-sera│       │
+│   │   :8080      │ JWT  │    :8081     │ JDBC │    :5432     │       │
+│   └──────┬───────┘      └──────┬───────┘      └──────────────┘       │
+│          │ OIDC                │ REST + STOMP                        │
+│          └────────►┌───────────▼────┐                                │
+│                    │ frontend-sera  │                                │
+│                    │  :5173 → 80    │                                │
+│                    └────────────────┘                                │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 - **`frontend/`** — aplicația React (SPA) care rulează în producție într-un container Nginx, obținut printr-un build multi-stage (`node:22-alpine` → `nginx:1.27-alpine`).
 - **`keycloak-sera`** — server de identitate (autentificare/autorizare), pornit cu `start-dev --import-realm`, care importă automat realm-ul `frontend/keycloak/realm-sera.json` și folosește o temă de login personalizată din `frontend/sera-theme/sera`.
-- **`docker-compose.yml`** (rădăcina repo-ului) — orchestrează cele două servicii; frontend-ul pornește doar după ce Keycloak trece healthcheck-ul (`condition: service_healthy`).
+- **`backend/`** — serviciu Spring Boot (Java 21) care se abonează la topicul MQTT `sera/senzori`, persistă citirile în Postgres și le expune prin REST (`/api/v1`) și STOMP (`/ws`). Regulile de cod sunt în [`backend/CLAUDE.md`](backend/CLAUDE.md).
+- **`postgres-sera`** — baza de date a aplicației; schema vine exclusiv din migrări Flyway, iar Hibernate rulează cu `ddl-auto: validate`.
+- **`docker-compose.yml`** (rădăcina repo-ului) — orchestrează cele patru servicii, cu dependențe pe healthcheck.
+
+### Relația cu proiectul `infra`
+
+Brokerul MQTT, Telegraf și InfluxDB rulează într-un **proiect compose separat**, lângă firmware-ul ESP32 (`sera-code/infra/`). Acest repo **nu le modifică și nu le înlocuiește**: backend-ul SERA se atașează la rețeaua `infra_default` și devine pur și simplu un al doilea abonat pe `sera/senzori`, lângă Telegraf. MQTT fiind publish/subscribe, cei doi consumatori nu se influențează — Influx continuă să primească exact aceleași date ca înainte.
+
+Consecință practică: **proiectul `infra` trebuie pornit primul**. Docker Compose nu acceptă `depends_on` între proiecte diferite, deci dacă rețeaua lipsește, `docker compose up` eșuează imediat, cu mesaj explicit.
 
 Viitor (neimplementat încă): backend + bază de date + comunicare cu un dispozitiv ESP32 pentru citiri reale de senzori. Acestea nu sunt incluse deliberat în stadiul actual, pentru a nu inventa contracte de API sau protocoale de comunicație înainte de a fi decise.
 
@@ -36,8 +51,27 @@ Viitor (neimplementat încă): backend + bază de date + comunicare cu un dispoz
 
 ```text
 SERA/
-├── docker-compose.yml        # orchestrare frontend + keycloak
+├── docker-compose.yml        # orchestrare frontend + backend + postgres + keycloak
+├── .env.example              # variabile de mediu (copiază în .env)
 ├── .gitignore
+├── backend/
+│   ├── CLAUDE.md             # reguli de cod curat pentru backend
+│   ├── pom.xml               # Spring Boot 3.5 / Java 21 / Maven
+│   ├── Dockerfile            # build multi-stage: maven → JRE alpine
+│   └── src/main/
+│       ├── java/ro/upb/etti/sera/
+│       │   ├── common/        # tratarea erorilor, bean-ul Clock
+│       │   ├── config/        # MQTT, securitate, WebSocket, proprietăți tipate
+│       │   ├── ingest/        # consumul MQTT, throttling, health indicator
+│       │   ├── telemetry/     # citiri, catalog de metrici, serii
+│       │   ├── aggregate/     # agregare orară + retention
+│       │   ├── events/        # jurnal de evenimente derivate
+│       │   ├── device/        # starea stației + watchdog de offline
+│       │   ├── settings/      # configurarea serei și pragurile
+│       │   └── ws/            # broadcast STOMP
+│       └── resources/
+│           ├── application.yml
+│           └── db/migration/V1__init.sql
 └── frontend/
     ├── src/
     │   ├── app/               # router, providers, layout aplicație
@@ -55,7 +89,9 @@ SERA/
     │   │   ├── profile/
     │   │   ├── start/
     │   │   └── theme/
-    │   ├── lib/                # utilitare (ex. `cn`)
+    │   ├── api/               # client fetch, tipuri și chei de query
+    │   ├── hooks/             # hook-uri partajate (socket live, catalog, stare device)
+    │   ├── lib/                # utilitare (ex. `cn`, formatare)
     │   └── main.tsx
     ├── keycloak/
     │   └── realm-sera.json     # realm importat automat la pornirea Keycloak
@@ -86,6 +122,22 @@ SERA/
 | Lint | oxlint |
 
 Stack-ul este fix și documentat în [`frontend/AGENTS_SERA.md`](frontend/AGENTS_SERA.md) — nu se introduc alternative (fără Axios, Bootstrap, MUI, Chakra, Ant Design, styled-components, Emotion sau sisteme de autentificare custom).
+
+### Backend
+
+| Categorie | Tehnologie |
+|---|---|
+| Limbaj | Java 21 |
+| Framework | Spring Boot 3.5 |
+| Consum MQTT | Spring Integration MQTT (Eclipse Paho) |
+| Persistență | Spring Data JPA + PostgreSQL 17 |
+| Migrări | Flyway (SQL versionat) |
+| Securitate | OAuth2 Resource Server (JWT emis de Keycloak) |
+| Push în timp real | WebSocket + STOMP |
+| Documentare API | springdoc-openapi |
+| Build | Maven, cu wrapper (`./mvnw`) |
+
+Fără Lombok: `record`-urile din Java 21 acoperă aproape tot, iar restul ar fi cod generat invizibil. Regulile complete sunt în [`backend/CLAUDE.md`](backend/CLAUDE.md).
 
 ### Identitate / Autentificare
 
@@ -154,7 +206,19 @@ Regulile complete de arhitectură, convenții de naming, structură de foldere �
 
 ### Cu Docker Compose (recomandat)
 
-Din rădăcina repo-ului:
+**Pasul 1 — pornește infrastructura MQTT** (alt proiect compose, lângă firmware):
+
+```bash
+cd ../sera-code/infra && docker compose up -d
+```
+
+**Pasul 2 — configurează variabilele de mediu**, o singură dată:
+
+```bash
+cp .env.example .env
+```
+
+**Pasul 3 — pornește aplicația**, din rădăcina acestui repo:
 
 ```bash
 docker compose up -d --build
@@ -162,10 +226,37 @@ docker compose up -d --build
 
 Servicii disponibile după pornire:
 
-- **Frontend**: http://localhost:5173
-- **Keycloak (admin console)**: http://localhost:8080 (`admin` / `admin` — doar pentru dezvoltare locală)
+| Serviciu | Adresă | Observații |
+|---|---|---|
+| Frontend | http://localhost:5173 | |
+| Backend (OpenAPI) | http://localhost:8081/swagger-ui.html | |
+| Backend (health) | http://localhost:8081/actuator/health | include starea conexiunii MQTT |
+| Keycloak | http://localhost:8080 | `admin` / `admin`, doar pentru dezvoltare locală |
+| Postgres | `localhost:5432` | utilizator și bază `sera` |
 
-Frontend-ul așteaptă automat ca Keycloak să devină `healthy` înainte de a porni (import realm + temă custom deja configurate).
+Ordinea de pornire este impusă prin healthcheck-uri: backend-ul așteaptă ca Postgres să fie `healthy` (altfel Flyway ar eșua la prima rulare), iar frontend-ul așteaptă Keycloak.
+
+### Lucrul cu baza de date din terminal
+
+Portul 5432 este publicat pe host, deci te poți conecta și cu psql, DBeaver, pgAdmin sau IntelliJ. Direct din container:
+
+```bash
+docker compose exec postgres-sera psql -U sera -d sera
+```
+
+Câte citiri există per metrică și cât de recente sunt:
+
+```bash
+docker compose exec postgres-sera psql -U sera -d sera -c "select metric, plant_id, count(*), max(ts) from reading group by 1,2 order by 1;"
+```
+
+### Backend fără Docker
+
+```bash
+cd backend
+./mvnw spring-boot:run     # necesită Postgres și brokerul MQTT accesibile
+./mvnw verify              # compilare + teste
+```
 
 ### Dezvoltare directă (fără Docker, doar frontend)
 
@@ -182,15 +273,40 @@ Necesită o instanță Keycloak accesibilă (local sau prin `docker compose up k
 
 ---
 
-## 7. Stadiu actual și limitări cunoscute
+## 7. Telemetria
 
-- Nu există backend și nici bază de date — sunt excluse intenționat din acest repo în etapa curentă.
-- Nu există integrare reală cu ESP32; nu se folosesc date de senzori simulate ca fiind reale.
-- Nu există protocoale de comunicație (REST/MQTT/WebSocket) decise încă pentru telemetrie.
-- Structura este pregătită să primească aceste integrări ulterior prin query-uri TanStack, fără a rescrie componentele de prezentare.
+Senzorii reali și câmpurile pe care le publică ESP32-ul pe topicul `sera/senzori`:
+
+```json
+{"temp":27.21,"umid":28.38672,"presiune":1003.628,"lux":12.5,"sol1":100,"sol2":100}
+```
+
+| Metrică | Unitate | Nivel | Câmp MQTT | Senzor |
+|---|---|---|---|---|
+| `TEMP_AIR` | °C | seră | `temp` | BME280 |
+| `HUMIDITY_AIR` | % | seră | `umid` | BME280 |
+| `PRESSURE` | hPa | seră | `presiune` | BME280 |
+| `LUX` | lx | seră | `lux` | BH1750 |
+| `SOIL_MOISTURE` | % | plantă (P1, P2) | `sol1`, `sol2` | senzor capacitiv |
+
+Patru metrici sunt la nivel de seră și una este per plantă, de aceea tabelul `reading` este lung/îngust, cu `plant_id` nullable, în loc de lat cu o coloană per senzor.
+
+Trei decizii merită reținute, pentru că nu sunt evidente din cod:
+
+- **Ritmul de scriere.** Device-ul publică la 1 Hz. Fiecare mesaj pleacă imediat pe WebSocket, deci interfața este în timp real, dar în Postgres se scrie doar la 5 secunde (`SERA_PERSIST_INTERVAL`) — altfel baza ar crește cu ~518.000 de rânduri pe zi fără câștig de informație.
+- **Mesajele retained sunt ignorate.** Pe topic există un mesaj păstrat de broker dintr-o versiune anterioară de firmware, livrat instant la fiecare abonare chiar cu ESP32-ul oprit. Fără filtrul explicit din `TelemetryIngestService`, fiecare pornire de backend ar înregistra o valoare veche ca fiind proaspătă.
+- **Eticheta de sol este recalculată.** Firmware-ul o calculează în `soilLabel()`, dar publică doar procentul; backend-ul o reconstruiește cu aceleași praguri (20/40/70), configurate în `application.yml`.
 
 ---
 
-## 8. Licență
+## 8. Stadiu actual și limitări cunoscute
+
+- **Actuatoarele nu sunt montate.** Nu există endpoint pentru ele și nici valori afișate: apar ca plăci dezactivate, marcate „Indisponibil — hardware nemontat”. Structura rămâne la locul ei, ca pagina să fie gata când echipamentul apare.
+- **Backend-ul este read-only față de device.** Nu publică niciodată pe MQTT; pragurile din Setări sunt folosite doar pentru generarea alertelor, nu sunt trimise către ESP32.
+- **ESP32-ul publică la QoS 0**, iar brokerul nu reține mesaje pentru abonați deconectați. Backend-ul se reconectează automat în câteva secunde, dar citirile din timpul unei opriri a lui se pierd pentru Postgres (Influx continuă să le primească prin Telegraf). Zero pierderi ar cere înlocuirea bibliotecii MQTT din firmware, pentru că PubSubClient publică doar QoS 0.
+
+---
+
+## 9. Licență
 
 Proiect realizat în cadrul lucrării de licență — Facultatea de Electronică, Telecomunicații și Tehnologia Informației (ETTI), Universitatea Politehnica din București (UPB).

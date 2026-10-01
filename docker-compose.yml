@@ -24,15 +24,88 @@ services:
       retries: 20
       start_period: 30s
 
+  postgres-sera:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sera}
+      POSTGRES_USER: ${POSTGRES_USER:-sera}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sera}
+    ports:
+      # Publicat pe host ca sa te poti conecta cu psql, DBeaver sau IntelliJ
+      # fara sa intri in container.
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    # Logam doar interogarile lente, ca logul sa ramana citibil la 1 Hz de ingest.
+    command: ["postgres", "-c", "log_statement=none", "-c", "log_min_duration_statement=500"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sera} -d ${POSTGRES_DB:-sera}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  backend-sera:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SERA_DB_URL: jdbc:postgresql://postgres-sera:5432/${POSTGRES_DB:-sera}
+      SERA_DB_USER: ${POSTGRES_USER:-sera}
+      SERA_DB_PASSWORD: ${POSTGRES_PASSWORD:-sera}
+      # Numele de serviciu din proiectul `infra` - acelasi pe care il foloseste Telegraf.
+      SERA_MQTT_URL: ${SERA_MQTT_URL:-tcp://mosquitto:1883}
+      SERA_MQTT_TOPIC: ${SERA_MQTT_TOPIC:-sera/senzori}
+      SERA_MQTT_CLIENT_ID: ${SERA_MQTT_CLIENT_ID:-sera-backend}
+      # Browserul vede Keycloak la localhost:8080 (deci asta scrie in token),
+      # containerul il vede la keycloak-sera:8080 (deci de acolo ia cheile publice).
+      SERA_KEYCLOAK_ISSUER: ${SERA_KEYCLOAK_ISSUER:-http://localhost:8080/realms/sera}
+      SERA_KEYCLOAK_JWKS: http://keycloak-sera:8080/realms/sera/protocol/openid-connect/certs
+      SERA_CORS_ORIGINS: ${SERA_CORS_ORIGINS:-http://localhost:5173}
+      SERA_PERSIST_INTERVAL: ${SERA_PERSIST_INTERVAL:-5s}
+      SERA_RETENTION_DAYS: ${SERA_RETENTION_DAYS:-30}
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres-sera:
+        condition: service_healthy
+    networks:
+      # Reteaua proiectului SERA (Keycloak, frontend) ...
+      - default
+      # ... si cea a proiectului `infra`, unde ruleaza brokerul MQTT.
+      - infra
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8081/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
   frontend-sera:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8081}
     ports:
       - "5173:80"
     depends_on:
       keycloak-sera:
         condition: service_healthy
+      backend-sera:
+        condition: service_started
 
 volumes:
   keycloak-data:
+  postgres-data:
+
+networks:
+  default:
+  # Reteaua creata de `sera-code/infra/docker-compose.yml`. Nu se poate folosi
+  # `depends_on` intre doua proiecte compose diferite, deci proiectul `infra`
+  # trebuie pornit INAINTE: altfel `docker compose up` esueaza aici, explicit.
+  infra:
+    name: infra_default
+    external: true

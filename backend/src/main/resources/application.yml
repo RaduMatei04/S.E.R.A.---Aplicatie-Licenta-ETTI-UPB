@@ -1,0 +1,86 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: sera-backend
+
+  datasource:
+    url: ${SERA_DB_URL:jdbc:postgresql://localhost:5432/sera}
+    username: ${SERA_DB_USER:sera}
+    password: ${SERA_DB_PASSWORD:sera}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Schema vine exclusiv din Flyway. `validate` face aplicatia sa refuze
+      # pornirea daca entitatile nu corespund schemei, in loc sa o modifice tacut.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+sera:
+  keycloak:
+    # Browserul vede Keycloak la localhost:8080, containerul la keycloak-sera:8080.
+    # `issuer-uri` este ce scrie in token (emis pentru browser), `jwk-set-uri` este
+    # adresa interna de unde backend-ul descarca cheile publice.
+    issuer-uri: ${SERA_KEYCLOAK_ISSUER:http://localhost:8080/realms/sera}
+    jwk-set-uri: ${SERA_KEYCLOAK_JWKS:http://localhost:8080/realms/sera/protocol/openid-connect/certs}
+    # Pus in token de mapper-ul `sera-backend-audience` din realm-sera.json.
+    audience: ${SERA_KEYCLOAK_AUDIENCE:sera-backend}
+
+  cors:
+    allowed-origins: ${SERA_CORS_ORIGINS:http://localhost:5173}
+
+  mqtt:
+    url: ${SERA_MQTT_URL:tcp://localhost:1883}
+    # Distinct de `sera-esp32` si de `Telegraf-Consumer-*`: doua conexiuni cu acelasi
+    # client id se deconecteaza reciproc la nesfarsit.
+    client-id: ${SERA_MQTT_CLIENT_ID:sera-backend}
+    topic: ${SERA_MQTT_TOPIC:sera/senzori}
+    qos: 1
+    connection-timeout: 10s
+    keep-alive-interval: 30s
+    max-reconnect-delay: 5s
+
+  ingest:
+    # ESP32 publica la 1 Hz. Persistam mai rar, dar trimitem pe WebSocket fiecare mesaj.
+    persist-interval: ${SERA_PERSIST_INTERVAL:5s}
+    # Pragurile de eticheta pentru umiditatea solului. Duplica `soilLabel()` din
+    # sera-code/src/main.cpp - daca se schimba acolo, se schimba si aici.
+    soil-dry-below: 20
+    soil-low-below: 40
+    soil-optimal-below: 70
+
+  device:
+    # Device-ul publica la 1 s cu keepalive 15 s; 30 s inseamna tacere reala, nu jitter.
+    offline-after: ${SERA_DEVICE_OFFLINE_AFTER:30s}
+    watchdog-interval: ${SERA_DEVICE_WATCHDOG_INTERVAL:10s}
+
+  retention:
+    raw-days: ${SERA_RETENTION_DAYS:30}
+
+logging:
+  level:
+    ro.upb.etti.sera: ${SERA_LOG_LEVEL:INFO}
